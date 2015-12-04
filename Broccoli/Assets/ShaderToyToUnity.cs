@@ -63,57 +63,105 @@ public class ShaderToyToUnity
     public static string Convert(string name, string code)
     {
         var template = @"
-            Shader ""Custom/ShaderToy"" {
-                Properties {
-                    _Color (""Color"", Color) = (1,1,1,1)
-                    _MainTex (""Albedo (RGB)"", 2D) = ""white"" {}
-                    _Glossiness (""Smoothness"", Range(0,1)) = 0.5
-                    _Metallic (""Metallic"", Range(0,1)) = 0.0
+            Shader ""Custom/ShaderToy""
+            {
+                Properties
+                {
+                    _MainTex (""Texture"",  2D) = ""white"" {}
                 }
-                SubShader {
+                SubShader
+                {
                     Tags { ""RenderType""=""Opaque"" }
-                    LOD 200
+                    LOD 100
 
-                    CGPROGRAM
+                    Pass
+                    {
 
-                    #pragma surface surf Standard fullforwardshaders
+                        CGPROGRAM
+                        #pragma vertex vert
+                        #pragma fragment frag
+                        
+                        #include ""UnityCG.cginc""
 
-                    #pragma target 3.0
+                        struct appdata
+                        {
+                            float4 vertex : POSITION;
+                            float2 uv : TEXCOORD0;
+                        };
 
-                    sampler2D _MainTex;
+                        struct v2f
+                        {
+                            float2 uv : TEXCOORD0;
+                            float4 vertex : SV_POSITION;
+                        };
 
-                    struct Input {
-                        float2 uv_MainTex;
-                    };
+                        sampler2D _MainTex;
+                        float4 _MainTex_ST;
 
-                    half _Glossiness;
-                    half _Metallic;
-                    fixed4 _Color;
+                        v2f vert(appdata v)
+                        {
+                            v2f o;
+                            o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+                            o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                            return o;
+                        }
 
-                    $CODE
+                        // GENERATED HELPERS
 
-                    ENDCG
+                        $HELPERS
+
+                        //void mainImage(out vec4 fragColor, in vec2 fragCoord)
+                        //{
+                            //vec2 uv = fragCoord.xy / _ScreenParams.xy;
+                            //fragColor = vec4(1,1,0,1);
+                        //}
+
+                        // GENERATED HELPERS
+
+                        $CODE
+
+                        // FINAL FRAG
+
+                        fixed4 frag(v2f i) : SV_Target
+                        {
+                            float4 color;
+                            float2 uv;
+
+                            mainImage(color, uv);
+
+                            return color;
+                        }
+
+                        ENDCG
+                    }
                 }
-                Fallback ""Diffuse""
             }
         ";
 
-        code = code.Replace("iGlobalTime", "_Time.y");
-        code = code.Replace("iResolution", "_ScreenParams");
-        code = code.Replace("vec2", "float2");
-        code = code.Replace("vec3", "float3");
-        code = code.Replace("vec4", "float4");
-        code = code.Replace("mat2", "float2x2");
-        code = code.Replace("mat3", "float3x3");
-        code = code.Replace("mat4", "float4x4");
-        code = code.Replace("Texture2D", "Tex2D");
-        code = code.Replace("atan", "atan2");
-        code = code.Replace("mix", "lerp");
-
         // TODO: replace vec3(x) with vec3(x,x,x)
-        // TODO: replace atan(x,y) with atan2(y,x) <- Note parameter ordering!
         // TODO: Replace *= with mul()
         // TODO: Remove third (bias) parameter from Texture2D lookups
+
+        var helpers = @"
+        
+            #define vec2 float2
+            #define vec3 float3
+            #define vec4 float4
+
+            #define mat2 float2x2
+            #define mat3 float3x3
+            #define mat4 float4x4
+
+            #define Texture2D(a,b,c) Tex2D(a,b)
+
+            #define atan(x, y) atan2(y, x)
+            #define mix lerp
+        ";
+
+        template = template.Replace("$HELPERS", helpers);
+
+        code = code.Replace("iGlobalTime", "_Time.y");
+        code = code.Replace("iResolution", "_ScreenParams");
 
         // mainImage(out vec4 fragColor, in vec2 fragCoord) is the fragment shader function, equivalent to float4 mainImage(float2 fragCoord : SV_POSITION) : SV_Target
         // UV coordinates in GLSL have 0 at the top and increase downwards, in HLSL 0 is at the bottom and increases upwards, so you may need to use uv.y = 1 – uv.y at some point.

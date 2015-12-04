@@ -182,6 +182,12 @@ public class ShaderToyTest
                 var converted = ShaderToyToUnity.Convert(key, s.code);
 
                 Debug.Log(converted);
+
+                var material = new Material(converted);
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+                cube.name = key;
+                cube.GetComponent<Renderer>().material = material;
             }
         }
 
