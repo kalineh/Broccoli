@@ -11,6 +11,13 @@ public class AssetBundler
 	public static List<string> assetPaths = new List<string>();
 	public static List<Object> assets = new List<Object>();
 
+
+    [MenuItem("Test/Build Asset Bundles")]
+    public static void TestBundle()
+    {
+        Bundle();
+    }
+
 	public static void Bundle()
 	{
 		BuildList();
@@ -18,21 +25,39 @@ public class AssetBundler
 		Debug.LogFormat("AssetBundler.Bundle(): bundling {0} items", assetPaths.Count);
 
 		var assets = new List<Object>();
+        var asset_paths_cleaned = new List<string>();
 
 		foreach (var path in assetPaths)
 		{
-			Debug.LogFormat("> {0}", path);
-
 			// TODO: need to handle all types
 
-			var path_stripped = Path.GetFileName(path);
-			var shader = AssetDatabase.LoadAssetAtPath<Shader>(path_stripped.ToString());
+			var asset_filename = Path.GetFileName(path);
+			var asset_path = Path.Combine("Assets", asset_filename);
+
+            asset_paths_cleaned.Add(asset_path.ToString());
+
+			Debug.LogFormat("> {0} -> {1}", path, asset_path.ToString());
+
+			var shader = AssetDatabase.LoadAssetAtPath<Shader>(asset_path.ToString());
 
 			assets.Add(shader);
 		}
 
+
+        // single platform
+        var build = new AssetBundleBuild();
+
+        build.assetBundleName = "generated.assetbundle";
+        build.assetNames = asset_paths_cleaned.ToArray();
+
+        // per platform
+        var build_map = new List<AssetBundleBuild>();
+
+        build_map.Add(build);
+     
 		var manifest = BuildPipeline.BuildAssetBundles(
 			"Assets/Generated",
+            build_map.ToArray(),
 			BuildAssetBundleOptions.ForceRebuildAssetBundle,
 			BuildTarget.StandaloneWindows
 		);
