@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -22,21 +23,26 @@ public class AssetBundler
 		{
 			Debug.LogFormat("> {0}", path);
 
-			// should only be one since it is a direct path
+			// TODO: need to handle all types
 
-			var objs = AssetDatabase.LoadAllAssetsAtPath(path);
+			var path_stripped = Path.GetFileName(path);
+			var shader = AssetDatabase.LoadAssetAtPath<Shader>(path_stripped.ToString());
 
-			foreach (var obj in objs)
-			{
-				assets.Add(obj);
-			}
+			assets.Add(shader);
 		}
 
-		BuildPipeline.BuildAssetBundles(
-			outputPath,
+		var manifest = BuildPipeline.BuildAssetBundles(
+			"Assets/Generated",
 			BuildAssetBundleOptions.ForceRebuildAssetBundle,
 			BuildTarget.StandaloneWindows
 		);
+
+		if (manifest != null)
+		{
+			Debug.LogFormat("> manifest {0}", manifest.ToString());
+			Debug.LogFormat("> name: {0}", manifest.name);
+			Debug.LogFormat("> files: {0}", manifest.GetAllAssetBundles().Length);
+		}
 
 		Debug.LogFormat("AssetBundler.Bundle(): done");
 	}
