@@ -257,9 +257,43 @@ public class ShaderToyTest
 
                 var temp = Environment.GetEnvironmentVariable("TEMP");
                 var file = String.Format("{0}.shader", key);
-                var path = Path.Combine(temp, file);
+                var shader_dir = Path.Combine(temp, "ShaderToyGenerated");
+                var shader_path = Path.Combine(shader_dir, file);
 
-                File.WriteAllText(path, converted);
+                Debug.LogFormat("> writing: {0}", shader_path);
+
+                Directory.CreateDirectory(shader_dir);
+                File.WriteAllText(shader_path, converted);
+
+                var bundle_path = Path.ChangeExtension(shader_path, "assetbundle");
+
+                var process_filename = Path.GetFullPath(@"Assets\buildtools\build_shader.bat");
+                var process_exists = File.Exists(process_filename);
+
+                var args = String.Format("\"{0}\" \"{1}\" \"{2}\"", UnityExePath, shader_dir, bundle_path);
+                var info = new System.Diagnostics.ProcessStartInfo(process_filename, args);
+
+                info.WorkingDirectory = @"Assets\buildtools";
+                info.UseShellExecute = false;
+                // unity hangs if this
+                //info.CreateNoWindow = true;
+                info.RedirectStandardOutput = true;
+
+                var proc = new System.Diagnostics.Process() { StartInfo = info, };
+
+                Debug.LogFormat("> starting batch: {0} {1}", info.FileName, info.Arguments);
+
+                proc.Start();
+
+                var stdout = proc.StandardOutput.ReadToEnd();
+
+                while (!proc.HasExited)
+                {
+                    Debug.Log("waiting...");
+                    yield return null;
+                }
+
+                proc.WaitForExit();
 
                 // run batch file
                 // import asset bundle

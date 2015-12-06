@@ -1,9 +1,9 @@
 
-SET UNITY_EXEC="C:/Program Files/Unity/Editor/Unity.exe"
-SET SRC_DIR=%1
-SET UNITY_ASSET_BUNDLE_PATH=%2
+SET UNITY_EXEC=%1
+SET SRC_DIR=%2
+SET UNITY_ASSET_BUNDLE_PATH=%3
 
-SET TEMP_PROJECT_NAME=TempProject
+SET TEMP_PROJECT_NAME=ShaderToyGeneratedProject
 SET TEMP_PROJECT_DIR=%TEMP%\%TEMP_PROJECT_NAME%
 
 echo "Creating temporary project at '%TEMP_PROJECT_DIR%'"
@@ -24,13 +24,15 @@ SET HELPER_SCRIPT=%TEMP_PROJECT_DIR%\Assets\Editor\AssetBundler.cs
 
 echo "Generating asset bundler script."
 
-cat AssetBundlerOpen.cs.template > %HELPER_SCRIPT%
+dir 
 
-echo outputPath = @"%UNITY_ASSET_BUNDLE_PATH%"; >> %HELPER_SCRIPT%
+type AssetBundlerOpen.cs.template > %HELPER_SCRIPT%
+
+echo outputPath = @%UNITY_ASSET_BUNDLE_PATH%; >> %HELPER_SCRIPT%
 
 for %%x in (%TEMP_PROJECT_DIR%\Assets\*) do echo assetPaths.Add(@"%%x"); >> %HELPER_SCRIPT%
 
-cat AssetBundlerClose.cs.template >> %HELPER_SCRIPT%
+type AssetBundlerClose.cs.template >> %HELPER_SCRIPT%
 
 echo "Building asset bundle."
 
@@ -40,4 +42,4 @@ echo "Deleting temporary project."
 
 echo del /f /s %TEMP_PROJECT_DIR%
 
-
+pause
