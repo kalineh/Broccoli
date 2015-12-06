@@ -307,11 +307,16 @@ public class ShaderToyTest
                     Debug.LogFormat("> * {0}", name);
                 }
 
-                // run batch file
-                // import asset bundle
-                // extract shader
-                // apply to material
-                // generate cube
+                var bundle_shader_name = String.Format("assets/{0}.shader", key);
+                var bundle_shader = bundle.LoadAsset<Shader>(bundle_shader_name);
+
+                Debug.LogFormat("> shader: {0}", bundle_shader.ToString());
+
+                var material = new Material(bundle_shader);
+                var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+                sphere.name = key;
+                sphere.GetComponent<Renderer>().material = material;
             }
         }
 
