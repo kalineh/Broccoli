@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SimpleJSON;
@@ -71,6 +73,8 @@ public class ShaderToy
 public class ShaderToyTest
     : MonoBehaviour
 {
+    private string UnityExePath = "";
+
     private string APIKey = "fdHtwN";
     private string APIURL = "https://www.shadertoy.com/api/v1/";
     private string APIShaders = "shaders";
@@ -82,10 +86,44 @@ public class ShaderToyTest
 
     void Update()
     {
+        if (String.IsNullOrEmpty(UnityExePath))
+        {
+            UnityExePath = FindUnityExe();
+        }
+
         if (Input.GetKeyDown(KeyCode.A)) { StartCoroutine(DownloadShaderKeys()); }
         if (Input.GetKeyDown(KeyCode.S)) { StartCoroutine(DownloadShaderInfo(ShaderKeys[0])); }
         if (Input.GetKeyDown(KeyCode.D)) { StartCoroutine(DownloadShaderInfo("ldtGDr")); }
         if (Input.GetKeyDown(KeyCode.F)) { StartCoroutine(TestMaterial("ldtGDr")); }
+        if (Input.GetKeyDown(KeyCode.G)) { StartCoroutine(TestBatch("ldtGDr")); }
+    }
+
+    string FindUnityExe()
+    {
+        var guess1 = Path.Combine(Environment.GetEnvironmentVariable("PROGRAMFILES"), @"Unity\Editor\Unity.exe");
+
+        if (File.Exists(guess1))
+            return guess1;
+
+        var guess2 = Microsoft.Win32.Registry.GetValue(@"Computer\HKEY_CLASSES_ROOT\com.unity3d.kharma", "", null) as string;
+        if (File.Exists(guess2))
+            return guess2;
+
+        var drives = DriveInfo.GetDrives();
+
+        foreach (var drive in drives)
+        {
+            if (drive.DriveType != DriveType.Fixed)
+                continue;
+
+            var root = drive.RootDirectory.FullName;
+            var files = Directory.GetFiles(root, "Unity.exe", SearchOption.AllDirectories);
+
+            if (files.Length > 0)
+                return files[0];
+        }
+
+        return "Unity.exe";
     }
 
     string BuildRequestURL(string req)
@@ -192,6 +230,38 @@ public class ShaderToyTest
         }
 
         Debug.Log("ShaderToyTest.TestMaterial(): done");
+        yield return null;
+    }
+
+    IEnumerator TestBatch(string key)
+    {
+        Debug.Log("ShaderToyTest.TestBatch(): starting...");
+
+        foreach (var s in ShaderToyCache)
+        {
+            if (s.id == key)
+            {
+                Debug.Log("> found " + key);
+
+                var converted = ShaderToyToUnity.Convert(key, s.code);
+
+                Debug.Log(converted);
+
+                var temp = Environment.GetEnvironmentVariable("TEMP");
+                var file = String.Format("{0}.shader", key);
+                var path = Path.Combine(temp, file);
+
+                File.WriteAllText(path, converted);
+
+                // run batch file
+                // import asset bundle
+                // extract shader
+                // apply to material
+                // generate cube
+            }
+        }
+
+        Debug.Log("ShaderToyTest.TestBatch(): done");
         yield return null;
     }
 }
