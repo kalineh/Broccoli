@@ -101,15 +101,16 @@ public class ShaderToyTest
     string FindUnityExe()
     {
         var guess1 = Path.Combine(Environment.GetEnvironmentVariable("PROGRAMFILES"), @"Unity\Editor\Unity.exe");
-
         if (File.Exists(guess1))
             return guess1;
 
-        var guess2 = Microsoft.Win32.Registry.GetValue(@"Computer\HKEY_CLASSES_ROOT\com.unity3d.kharma", "", null) as string;
+        var guess2 = Microsoft.Win32.Registry.GetValue(@"HKEY_CLASSES_ROOT\com.unity3d.kharma\DefaultIcon", "", null) as string;
         if (File.Exists(guess2))
             return guess2;
 
-        var drives = DriveInfo.GetDrives();
+        // NOTE：not implemented in mono
+        /*
+        //var drives = DriveInfo.GetDrives();
 
         foreach (var drive in drives)
         {
@@ -122,6 +123,13 @@ public class ShaderToyTest
             if (files.Length > 0)
                 return files[0];
         }
+        */
+
+        var root = "C:";
+        var files = Directory.GetFiles(root, "Unity.exe", SearchOption.AllDirectories);
+
+        if (files.Length > 0)
+            return files[0];
 
         return "Unity.exe";
     }
