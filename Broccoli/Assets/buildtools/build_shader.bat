@@ -24,13 +24,13 @@ SET HELPER_SCRIPT=%TEMP_PROJECT_DIR%\Assets\Editor\AssetBundler.cs
 
 echo "Generating asset bundler script."
 
-cat AssetBundlerTemplateOpen.cs > %HELPER_SCRIPT%
+cat AssetBundlerOpen.cs.template > %HELPER_SCRIPT%
 
 echo outputPath = @"%UNITY_ASSET_BUNDLE_PATH%"; >> %HELPER_SCRIPT%
 
 for %%x in (%TEMP_PROJECT_DIR%\Assets\*) do echo assetPaths.Add(@"%%x"); >> %HELPER_SCRIPT%
 
-cat AssetBundlerTemplateClose.cs >> %HELPER_SCRIPT%
+cat AssetBundlerClose.cs.template >> %HELPER_SCRIPT%
 
 echo "Building asset bundle."
 
