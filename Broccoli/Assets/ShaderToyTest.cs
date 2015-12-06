@@ -275,8 +275,7 @@ public class ShaderToyTest
 
                 info.WorkingDirectory = @"Assets\buildtools";
                 info.UseShellExecute = false;
-                // unity hangs if this
-                //info.CreateNoWindow = true;
+                info.CreateNoWindow = true;
                 //info.RedirectStandardOutput = true;
 
                 var proc = new System.Diagnostics.Process() { StartInfo = info, };

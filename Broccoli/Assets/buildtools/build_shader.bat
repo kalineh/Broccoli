@@ -34,7 +34,7 @@ type AssetBundlerClose.cs.template >> %HELPER_SCRIPT%
 
 echo "Building asset bundle."
 
-%UNITY_EXEC% -projectProject %TEMP_PROJECT_DIR% -executeMethod AssetBundler.Bundle
+%UNITY_EXEC% -batchmode -quit -projectProject %TEMP_PROJECT_DIR% -executeMethod AssetBundler.Bundle
 
 echo "Copying asset bundle back."
 
