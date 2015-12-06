@@ -1,5 +1,5 @@
 
-SET UNITY_EXEC="D:/dev/unity/Editor/Unity.exe"
+SET UNITY_EXEC="C:/Program Files/Unity/Editor/Unity.exe"
 SET SRC_DIR=%1
 SET UNITY_ASSET_BUNDLE_PATH=%2
 
