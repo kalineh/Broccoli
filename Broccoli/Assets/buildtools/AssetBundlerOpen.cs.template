@@ -58,7 +58,7 @@ public class AssetBundler
 		var manifest = BuildPipeline.BuildAssetBundles(
 			"Assets/Generated",
             build_map.ToArray(),
-			BuildAssetBundleOptions.ForceRebuildAssetBundle,
+			BuildAssetBundleOptions.UncompressedAssetBundle,
 			BuildTarget.StandaloneWindows
 		);
 
