@@ -41,5 +41,3 @@ echo "Building asset bundle."
 echo "Deleting temporary project."
 
 echo del /f /s %TEMP_PROJECT_DIR%
-
-pause
