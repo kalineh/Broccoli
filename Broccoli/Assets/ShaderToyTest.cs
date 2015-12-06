@@ -277,7 +277,7 @@ public class ShaderToyTest
                 info.UseShellExecute = false;
                 // unity hangs if this
                 //info.CreateNoWindow = true;
-                info.RedirectStandardOutput = true;
+                //info.RedirectStandardOutput = true;
 
                 var proc = new System.Diagnostics.Process() { StartInfo = info, };
 
@@ -285,15 +285,27 @@ public class ShaderToyTest
 
                 proc.Start();
 
-                var stdout = proc.StandardOutput.ReadToEnd();
-
-                while (!proc.HasExited)
-                {
-                    Debug.Log("waiting...");
-                    yield return null;
-                }
+                //var stdout = proc.StandardOutput.ReadToEnd();
+                //while (!proc.HasExited)
+                //{
+                    //Debug.Log("waiting...");
+                    //yield return null;
+                //}
 
                 proc.WaitForExit();
+
+                var bundle_exists = File.Exists(bundle_path);
+
+                Debug.LogFormat("> bundle exists: {0}", bundle_exists);
+
+                var bundle = AssetBundle.CreateFromFile(bundle_path);
+                var bundle_assets = bundle.GetAllAssetNames();
+
+                Debug.LogFormat("> bundle:");
+                foreach (var name in bundle_assets)
+                {
+                    Debug.LogFormat("> * {0}", name);
+                }
 
                 // run batch file
                 // import asset bundle

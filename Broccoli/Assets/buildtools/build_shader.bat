@@ -28,15 +28,17 @@ dir
 
 type AssetBundlerOpen.cs.template > %HELPER_SCRIPT%
 
-echo outputPath = @%UNITY_ASSET_BUNDLE_PATH%; >> %HELPER_SCRIPT%
-
 for %%x in (%TEMP_PROJECT_DIR%\Assets\*) do echo assetPaths.Add(@"%%x"); >> %HELPER_SCRIPT%
 
 type AssetBundlerClose.cs.template >> %HELPER_SCRIPT%
 
 echo "Building asset bundle."
 
-%UNITY_EXEC%  -projectProject %TEMP_PROJECT_DIR% -executeMethod AssetBundler.Bundle
+%UNITY_EXEC% -projectProject %TEMP_PROJECT_DIR% -executeMethod AssetBundler.Bundle
+
+echo "Copying asset bundle back."
+
+echo F | xcopy /y /s %TEMP_PROJECT_DIR%\Assets\Generated\generated.assetbundle %UNITY_ASSET_BUNDLE_PATH%
 
 echo "Deleting temporary project."
 
