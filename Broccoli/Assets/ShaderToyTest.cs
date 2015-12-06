@@ -210,6 +210,15 @@ public class ShaderToyTest
         Debug.Log(result);
         Debug.Log(shader.code);
 
+        foreach (var item in ShaderToyCache)
+        {
+            if (item.id == shader.id)
+            {
+                ShaderToyCache.Remove(item);
+                break;
+            }
+        }
+
         ShaderToyCache.Add(shader);
 
         Debug.Log("ShaderToyTest.DownloadShaderKeys(): done.");
@@ -316,6 +325,8 @@ public class ShaderToyTest
 
                 sphere.name = key;
                 sphere.GetComponent<Renderer>().material = material;
+
+                bundle.Unload(false);
             }
         }
 
