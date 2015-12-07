@@ -141,6 +141,7 @@ public class ShaderToyToUnity
         // TODO: replace vec3(x) with vec3(x,x,x)
         // TODO: Replace *= with mul()
         // TODO: Remove third (bias) parameter from Texture2D lookups
+        // TODO: post-decrement operator on float4 seems unsupported
 
         var helpers = @"
         

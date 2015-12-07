@@ -327,6 +327,11 @@ public class ShaderToyTest
                 sphere.name = key;
                 sphere.GetComponent<Renderer>().material = material;
 
+                sphere.AddComponent<Rigidbody>();
+                sphere.AddComponent<ShaderText>().Text = converted;
+
+                DestroyObject(sphere, 60.0f);
+
                 bundle.Unload(false);
             }
         }
