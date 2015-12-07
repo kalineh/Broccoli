@@ -142,6 +142,7 @@ public class ShaderToyToUnity
         // TODO: Replace *= with mul()
         // TODO: Remove third (bias) parameter from Texture2D lookups
         // TODO: post-decrement operator on float4 seems unsupported
+        // TODO: const values cannot be in other const values in global scope, replace with defines?
 
         var helpers = @"
         

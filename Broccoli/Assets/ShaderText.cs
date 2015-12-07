@@ -18,7 +18,7 @@ public class ShaderTextEditor
         base.OnInspectorGUI();
 
         scroll_position = EditorGUILayout.BeginScrollView(scroll_position);
-        EditorGUILayout.TextArea((target as ShaderText).Text);
+        EditorGUILayout.TextArea((target as ShaderText).Text, GUILayout.ExpandHeight(true), GUILayout.Height(400.0f));
         EditorGUILayout.EndScrollView();
     }
 }
