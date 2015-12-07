@@ -157,6 +157,7 @@ public class ShaderToyToUnity
             #define atan(x, y) atan2(y, x)
             #define mix lerp
             #define mod fmod
+            #define fract frac
         ";
 
         template = template.Replace("$HELPERS", helpers);
