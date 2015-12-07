@@ -96,6 +96,7 @@ public class ShaderToyTest
         if (Input.GetKeyDown(KeyCode.D)) { StartCoroutine(DownloadShaderInfo("ldtGDr")); }
         if (Input.GetKeyDown(KeyCode.F)) { StartCoroutine(TestMaterial("ldtGDr")); }
         if (Input.GetKeyDown(KeyCode.G)) { StartCoroutine(TestBatch("ldtGDr")); }
+        if (Input.GetKeyDown(KeyCode.H)) { StartCoroutine(Reload()); }
     }
 
     string FindUnityExe()
@@ -332,5 +333,11 @@ public class ShaderToyTest
 
         Debug.Log("ShaderToyTest.TestBatch(): done");
         yield return null;
+    }
+
+    public IEnumerator Reload()
+    {
+        yield return StartCoroutine(DownloadShaderInfo("ldtGDr"));
+        yield return StartCoroutine(TestBatch("ldtGDr"));
     }
 }
