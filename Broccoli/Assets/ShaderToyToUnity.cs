@@ -125,7 +125,7 @@ public class ShaderToyToUnity
                         fixed4 frag(v2f i) : SV_Target
                         {
                             float4 color;
-                            float2 uv;
+                            float2 uv = i.uv;
 
                             mainImage(color, uv);
 
@@ -156,6 +156,7 @@ public class ShaderToyToUnity
 
             #define atan(x, y) atan2(y, x)
             #define mix lerp
+            #define mod fmod
         ";
 
         template = template.Replace("$HELPERS", helpers);
