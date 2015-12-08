@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 using SimpleJSON;
 
 public class ShaderToy
@@ -99,6 +100,7 @@ public class ShaderToyTest
         if (Input.GetKeyDown(KeyCode.G)) { StartCoroutine(TestBatch("ldtGDr")); }
         if (Input.GetKeyDown(KeyCode.H)) { StartCoroutine(Reload()); }
         if (Input.GetKeyDown(KeyCode.J)) { StartCoroutine(TestShaderConvert()); }
+        if (Input.GetKeyDown(KeyCode.K)) { StartCoroutine(TestShaderConvertRepeat()); }
     }
 
     string FindUnityExe()
@@ -371,6 +373,43 @@ public class ShaderToyTest
         File.WriteAllText("Assets/ShaderToyManualConvertShader.shader", converted);
 
         Debug.Log("TestShaderConvert(): done");
+
+        yield return null;
+    }
+
+    public IEnumerator TestShaderConvertRepeat()
+    {
+        Debug.Log("TestShaderConvertRepeat(): enter");
+
+        while (true)
+        {
+            Debug.Log("TestShaderConvertRepeat(): reloading");
+
+            var path = "Assets/ShaderToyManualConvertShaderGlsl.txt";
+
+            var str = File.ReadAllText(path);
+            var converted = ShaderToyToUnity.Convert("TestShader", str);
+            File.WriteAllText("Assets/ShaderToyManualConvertShader.shader", converted);
+
+            var timestamp = File.GetLastWriteTimeUtc(path);
+
+            Application.runInBackground = true;
+            AssetDatabase.Refresh();
+
+            while (true)
+            {
+                if (Input.GetKeyDown(KeyCode.L))
+                {
+                    Application.runInBackground = false;
+                    yield break;
+                }
+
+                if (File.GetLastWriteTimeUtc(path) > timestamp)
+                    break;
+
+                yield return null;
+            }
+        }
 
         yield return null;
     }
