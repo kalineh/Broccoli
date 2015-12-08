@@ -127,7 +127,10 @@ public class ShaderToyToUnity
                             float4 color;
                             float2 uv = i.uv;
 
-                            mainImage(color, uv);
+                            // scale our normalized surface uv to some screen resolution values
+                            float2 uv_unnormalized = uv * _ScreenParams.xy;
+
+                            mainImage(color, uv_unnormalized);
 
                             return color;
                         }
