@@ -386,8 +386,10 @@ public class ShaderToyTest
             Debug.Log("TestShaderConvertRepeat(): reloading");
 
             var path = "Assets/ShaderToyManualConvertShaderGlsl.txt";
-
-            var str = File.ReadAllText(path);
+            var file = File.Open(path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite);
+            var reader = new BinaryReader(file);
+            var bytes = reader.ReadBytes((int)file.Length);
+            var str = System.Text.Encoding.Default.GetString(bytes);
             var converted = ShaderToyToUnity.Convert("TestShader", str);
             File.WriteAllText("Assets/ShaderToyManualConvertShader.shader", converted);
 
