@@ -73,6 +73,7 @@ public class ShaderToy
 public class ShaderToyTest
     : MonoBehaviour
 {
+    public string UnityExePathHint = "";
     private string UnityExePath = "";
 
     private string APIKey = "fdHtwN";
@@ -101,6 +102,9 @@ public class ShaderToyTest
 
     string FindUnityExe()
     {
+        if (File.Exists(UnityExePathHint))
+            return UnityExePathHint;
+
         var guess1 = Path.Combine(Environment.GetEnvironmentVariable("PROGRAMFILES"), @"Unity\Editor\Unity.exe");
         if (File.Exists(guess1))
             return guess1;
@@ -307,6 +311,9 @@ public class ShaderToyTest
 
                 Debug.LogFormat("> bundle exists: {0}", bundle_exists);
 
+                if (!bundle_exists)
+                    yield break;
+
                 var bundle = AssetBundle.CreateFromFile(bundle_path);
                 var bundle_assets = bundle.GetAllAssetNames();
 
@@ -320,6 +327,12 @@ public class ShaderToyTest
                 var bundle_shader = bundle.LoadAsset<Shader>(bundle_shader_name);
 
                 Debug.LogFormat("> shader: {0}", bundle_shader.ToString());
+
+                if (!bundle_shader)
+                {
+                    bundle.Unload(false);
+                    yield break;
+                }
 
                 var material = new Material(bundle_shader);
                 var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
