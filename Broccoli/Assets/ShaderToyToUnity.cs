@@ -161,6 +161,15 @@ public class ShaderToyToUnity
             float4 vec4(float x, float y, float z) { return float4(x,y,z,0.0); }
             float4 vec4(float x, float y, float z, float w) { return float4(x,y,z,w); }
 
+            // likely typos here
+            float4 vec4(float2 xy, float z, float w) { return float4(xy.x, xy.y, z, w); }
+            float4 vec4(float x, float2 yz, float w) { return float4(x, yz.x, yz.y, w); }
+            float4 vec4(float x, float y, float2 zw) { return float4(x, y, zw.x, zw.y); }
+
+            // likely typos here
+            float4 vec4(float3 xyz, float w) { return float4(xyz.x, xyz.y, xyz.z, w); }
+            float4 vec4(float x, float3 yzw) { return float4(x, yzw.x, yzw.y, yzw.z); }
+
             float2x2 mat2(float x0, float x1, float y0, float y1) { return float2x2(x0,x1,y0,y1); }
 
             #define mat3 float3x3
