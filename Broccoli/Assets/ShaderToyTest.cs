@@ -290,7 +290,7 @@ public class ShaderToyTest
                 info.WorkingDirectory = @"Assets\buildtools";
                 info.UseShellExecute = false;
                 info.CreateNoWindow = true;
-                //info.RedirectStandardOutput = true;
+                info.RedirectStandardOutput = true;
 
                 var proc = new System.Diagnostics.Process() { StartInfo = info, };
 
@@ -298,12 +298,14 @@ public class ShaderToyTest
 
                 proc.Start();
 
-                //var stdout = proc.StandardOutput.ReadToEnd();
-                //while (!proc.HasExited)
-                //{
-                    //Debug.Log("waiting...");
-                    //yield return null;
-                //}
+                var stdout = proc.StandardOutput.ReadToEnd();
+                while (!proc.HasExited)
+                {
+                    Debug.Log("waiting...");
+                    yield return null;
+                }
+
+                Debug.Log(stdout);
 
                 proc.WaitForExit();
 
