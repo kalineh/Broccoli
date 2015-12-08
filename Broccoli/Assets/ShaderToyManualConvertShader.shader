@@ -79,70 +79,42 @@
 
                         // GENERATED HELPERS
 
-                        // Star Nest by Pablo Román Andrioli
-
-// This content is under the MIT License.
-
-#define iterations 17
-#define formuparam 0.53
-
-#define volsteps 20
-#define stepsize 0.1
-
-#define zoom   0.800
-#define tile   0.850
-#define speed  0.010 
-
-#define brightness 0.0015
-#define darkmatter 0.300
-#define distfading 0.730
-#define saturation 0.850
-
-
-void mainImage( out float4 fragColor, in float2 fragCoord )
+                        void mainImage( out float4 fragColor, in float2 fragCoord )
 {
-	//get coords and direction
-	float2 uv=fragCoord.xy/_ScreenParams.xy-.5;
-	uv.y*=_ScreenParams.y/_ScreenParams.x;
-	float3 dir=vec3(uv*zoom,1.);
-	float time=_Time.y*speed+.25;
-
-	//mouse rotation
-	float a1=.5+float2(0.0,0.0).x/_ScreenParams.x*2.;
-	float a2=.8+float2(0.0,0.0).y/_ScreenParams.y*2.;
-	float2x2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));
-	float2x2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));
-	//dir.xz*=rot1;
-	//dir.xy*=rot2;
-	float3 from=vec3(1.,.5,0.5);
-	from+=vec3(time*2.,time,-2.);
-	//from.xz*=rot1;
-	//from.xy*=rot2;
+	float2 p = (2.0*fragCoord.xy-_ScreenParams.xy)/_ScreenParams.y;
+    float tau = 3.1415926535*2.0;
+    float a = atan(p.x,p.y);
+    float r = length(p)*0.75;
+    float2 uv = vec2(a/tau,r);
 	
-	//volumetric rendering
-	float s=0.1,fade=1.;
-	float3 v=vec3(0.);
-	for (int r=0; r<volsteps; r++) {
-		float3 p=from+s*dir*.5;
-		p = abs(vec3(tile)-mod(p,vec3(tile*2.))); // tiling fold
-		float pa,a=pa=0.;
-		for (int i=0; i<iterations; i++) { 
-			p=abs(p)/dot(p,p)-formuparam; // the magic formula
-			a+=abs(length(p)-pa); // absolute sum of average change
-			pa=length(p);
-		}
-		float dm=max(0.,darkmatter-a*a*.001); //dark matter
-		a*=a*a; // add contrast
-		if (r>6) fade*=1.-dm; // dark matter, don't render near
-		//v+=vec3(dm,dm*.5,0.);
-		v+=fade;
-		v+=vec3(s,s*s,s*s*s*s)*a*brightness*fade; // coloring based on distance
-		fade*=distfading; // distance fading
-		s+=stepsize;
+	//get the color
+	float xCol = (uv.x - (_Time.y / 3.0)) * 3.0;
+	xCol = mod(xCol, 3.0);
+	float3 horColour = vec3(0.25, 0.25, 0.25);
+	
+	if (xCol < 1.0) {
+		
+		horColour.r += 1.0 - xCol;
+		horColour.g += xCol;
 	}
-	v=mix(vec3(length(v)),v,saturation); //color adjust
-	fragColor = vec4(v.xyz*.01,1.);	
-	
+	else if (xCol < 2.0) {
+		
+		xCol -= 1.0;
+		horColour.g += 1.0 - xCol;
+		horColour.b += xCol;
+	}
+	else {
+		
+		xCol -= 2.0;
+		horColour.b += 1.0 - xCol;
+		horColour.r += xCol;
+	}
+
+	// draw color beam
+	uv = (2.0 * uv) - 1.0;
+	float beamWidth = (0.7+0.5*cos(uv.x*10.0*tau*0.15*clamp(floor(5.0 + 10.0*cos(_Time.y)), 0.0, 10.0))) * abs(1.0 / (30.0 * uv.y));
+	float3 horBeam = vec3(beamWidth);
+	fragColor = vec4((( horBeam) * horColour), 1.0);
 }
 
                         // FINAL FRAG
