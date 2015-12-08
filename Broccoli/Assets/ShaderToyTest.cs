@@ -340,7 +340,7 @@ public class ShaderToyTest
                 }
 
                 var material = new Material(bundle_shader);
-                var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                var sphere = GameObject.CreatePrimitive(PrimitiveType.Cube);
 
                 sphere.name = key;
                 sphere.GetComponent<Renderer>().material = material;
