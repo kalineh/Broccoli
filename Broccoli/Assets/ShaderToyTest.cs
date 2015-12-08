@@ -98,6 +98,7 @@ public class ShaderToyTest
         if (Input.GetKeyDown(KeyCode.F)) { StartCoroutine(TestMaterial("ldtGDr")); }
         if (Input.GetKeyDown(KeyCode.G)) { StartCoroutine(TestBatch("ldtGDr")); }
         if (Input.GetKeyDown(KeyCode.H)) { StartCoroutine(Reload()); }
+        if (Input.GetKeyDown(KeyCode.J)) { StartCoroutine(TestShaderConvert()); }
     }
 
     string FindUnityExe()
@@ -359,5 +360,18 @@ public class ShaderToyTest
     {
         yield return StartCoroutine(DownloadShaderInfo("ldtGDr"));
         yield return StartCoroutine(TestBatch("ldtGDr"));
+    }
+
+    public IEnumerator TestShaderConvert()
+    {
+        Debug.Log("TestShaderConvert(): enter");
+
+        var str = File.ReadAllText("Assets/ShaderToyManualConvertShaderGlsl.txt");
+        var converted = ShaderToyToUnity.Convert("TestShader", str);
+        File.WriteAllText("Assets/ShaderToyManualConvertShader.shader", converted);
+
+        Debug.Log("TestShaderConvert(): done");
+
+        yield return null;
     }
 }

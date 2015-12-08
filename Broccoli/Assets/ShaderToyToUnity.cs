@@ -166,6 +166,7 @@ public class ShaderToyToUnity
 
         code = code.Replace("iGlobalTime", "_Time.y");
         code = code.Replace("iResolution", "_ScreenParams");
+        code = code.Replace("iMouse", "float2(0.0,0.0)");
 
         // mainImage(out vec4 fragColor, in vec2 fragCoord) is the fragment shader function, equivalent to float4 mainImage(float2 fragCoord : SV_POSITION) : SV_Target
         // UV coordinates in GLSL have 0 at the top and increase downwards, in HLSL 0 is at the bottom and increases upwards, so you may need to use uv.y = 1 – uv.y at some point.
