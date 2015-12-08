@@ -146,11 +146,20 @@ public class ShaderToyToUnity
 
         var helpers = @"
         
-            #define vec2 float2
-            #define vec3 float3
-            #define vec4 float4
+            float2 vec2(float x) { return float2(x,x); }
+            float2 vec2(float x, float y) { return float2(x,y); }
 
-            #define mat2 float2x2
+            float3 vec3(float x) { return float3(x,x,x); }
+            float3 vec3(float x, float y) { return float3(x,y,0.0); }
+            float3 vec3(float x, float y, float z) { return float3(x,y,z); }
+
+            float4 vec4(float x) { return float4(x,x,x,x); }
+            float4 vec4(float x, float y) { return float4(x,y,0.0,0.0); }
+            float4 vec4(float x, float y, float z) { return float4(x,y,z,0.0); }
+            float4 vec4(float x, float y, float z, float w) { return float4(x,y,z,w); }
+
+            float2x2 mat2(float x0, float x1, float y0, float y1) { return float2x2(x0,x1,y0,y1); }
+
             #define mat3 float3x3
             #define mat4 float4x4
 
@@ -167,6 +176,15 @@ public class ShaderToyToUnity
         code = code.Replace("iGlobalTime", "_Time.y");
         code = code.Replace("iResolution", "_ScreenParams");
         code = code.Replace("iMouse", "float2(0.0,0.0)");
+
+        // some inline replacements
+        code = code.Replace("vec2 ", "float2 ");
+        code = code.Replace("vec3 ", "float3 ");
+        code = code.Replace("vec4 ", "float4 ");
+
+        code = code.Replace("mat2 ", "float2x2 ");
+        code = code.Replace("mat3 ", "float3x3 ");
+        code = code.Replace("mat4 ", "float4x4 ");
 
         // mainImage(out vec4 fragColor, in vec2 fragCoord) is the fragment shader function, equivalent to float4 mainImage(float2 fragCoord : SV_POSITION) : SV_Target
         // UV coordinates in GLSL have 0 at the top and increase downwards, in HLSL 0 is at the bottom and increases upwards, so you may need to use uv.y = 1 – uv.y at some point.

@@ -46,16 +46,20 @@
 
                         
         
-            #define vec2 float2
-            #define vec3 float3
-            #define vec3(x) float3(x,x,x)
-            #define vec3(x,y,z) float3(x,y,z)
-            //float3 vec3(float x) { return float3(x, x, x); }
-            //float3 vec3(float x, float y, float z) { return float3(x, y, z); }
-            #define vec3 float3
-            #define vec4 float4
+            float2 vec2(float x) { return float2(x,x); }
+            float2 vec2(float x, float y) { return float2(x,y); }
 
-            #define mat2 float2x2
+            float3 vec3(float x) { return float3(x,x,x); }
+            float3 vec3(float x, float y) { return float3(x,y,0.0); }
+            float3 vec3(float x, float y, float z) { return float3(x,y,z); }
+
+            float4 vec4(float x) { return float4(x,x,x,x); }
+            float4 vec4(float x, float y) { return float4(x,y,0.0,0.0); }
+            float4 vec4(float x, float y, float z) { return float4(x,y,z,0.0); }
+            float4 vec4(float x, float y, float z, float w) { return float4(x,y,z,w); }
+
+            float2x2 mat2(float x0, float x1, float y0, float y1) { return float2x2(x0,x1,y0,y1); }
+
             #define mat3 float3x3
             #define mat4 float4x4
 
@@ -95,39 +99,31 @@
 #define saturation 0.850
 
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void mainImage( out float4 fragColor, in float2 fragCoord )
 {
-fragColor = vec4(1,1,1,1);
 	//get coords and direction
-	vec2 uv=fragCoord.xy/_ScreenParams.xy-.5;
+	float2 uv=fragCoord.xy/_ScreenParams.xy-.5;
 	uv.y*=_ScreenParams.y/_ScreenParams.x;
-	vec3 dir=vec3(uv*zoom,1.);
+	float3 dir=vec3(uv*zoom,1.);
 	float time=_Time.y*speed+.25;
 
 	//mouse rotation
 	float a1=.5+float2(0.0,0.0).x/_ScreenParams.x*2.;
 	float a2=.8+float2(0.0,0.0).y/_ScreenParams.y*2.;
-	mat2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));
-	mat2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));
-	// error
+	float2x2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));
+	float2x2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));
 	//dir.xz*=rot1;
 	//dir.xy*=rot2;
-	dir.xz=mul(dir.xz, rot1);
-	dir.xy=mul(dir.xz, rot2);
-	vec3 from=vec3(1.,.5,0.5);
+	float3 from=vec3(1.,.5,0.5);
 	from+=vec3(time*2.,time,-2.);
-	// error
 	//from.xz*=rot1;
 	//from.xy*=rot2;
-	from.xz=mul(from.xz, rot1);
-	from.xy=mul(from.xz, rot2);
 	
 	//volumetric rendering
-	//float s=0.1,fade=1.0;
-	vec3 v=vec3(0.0);
+	float s=0.1,fade=1.;
+	float3 v=vec3(0.);
 	for (int r=0; r<volsteps; r++) {
-	/*
-		vec3 p=from+s*dir*.5;
+		float3 p=from+s*dir*.5;
 		p = abs(vec3(tile)-mod(p,vec3(tile*2.))); // tiling fold
 		float pa,a=pa=0.;
 		for (int i=0; i<iterations; i++) { 
@@ -143,13 +139,9 @@ fragColor = vec4(1,1,1,1);
 		v+=vec3(s,s*s,s*s*s*s)*a*brightness*fade; // coloring based on distance
 		fade*=distfading; // distance fading
 		s+=stepsize;
-	*/
 	}
-	//v=mix(vec3(length(v),0.0,0.0),v,saturation); //color adjust
-	//v=mix(vec3(1.0,0.0,0.0),v,saturation); //color adjust
-	/*
-	fragColor = vec4(v*.01,1.);	
-	*/
+	v=mix(vec3(length(v)),v,saturation); //color adjust
+	fragColor = vec4(v.xyz*.01,1.);	
 	
 }
 
