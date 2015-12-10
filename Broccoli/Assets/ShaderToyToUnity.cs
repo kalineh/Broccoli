@@ -178,6 +178,10 @@ public class ShaderToyToUnity
             #define mat3 float3x3
             #define mat4 float4x4
 
+            #define ivec2 int2
+            #define ivec3 int3
+            #define ivec4 int4
+
             #define Texture2D(a,b,c) Tex2D(a,b)
 
             #define atan(x, y) atan2(y, x)
@@ -193,6 +197,10 @@ public class ShaderToyToUnity
         code = code.Replace("iMouse", "float2(0.0,0.0)");
 
         // some inline replacements
+        code = code.Replace("ivec2 ", "int2 ");
+        code = code.Replace("ivec3 ", "int3 ");
+        code = code.Replace("ivec4 ", "int4 ");
+
         code = code.Replace("vec2 ", "float2 ");
         code = code.Replace("vec3 ", "float3 ");
         code = code.Replace("vec4 ", "float4 ");
