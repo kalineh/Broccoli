@@ -182,7 +182,7 @@ public class ShaderToyToUnity
 
             #define atan(x, y) atan2(y, x)
             #define mix lerp
-            #define mod fmod
+            #define mod(x, y) fmod(abs(x), y)
             #define fract frac
         ";
 
