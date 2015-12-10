@@ -396,6 +396,15 @@ public class ShaderToyToUnity
             float test15 = 1 * 2 * 3;
             float test16 = 1 * 2 * 3 * 4;
 
+            float test17 = ((1 / 2) * 3);
+            float test18 = (1 * (2 / 3));
+
+            float test19 = ((1 * 2) / 3);
+            float test20 = (1 / (2 * 3));
+
+            float test21 = (1 * 2) / 3;
+            float test22 = 1 / (2 * 3);
+
             fragColor = vec4(1, 1, 0, 1);
         }
         */
@@ -434,13 +443,13 @@ public class ShaderToyToUnity
             {
                 var c = input[cursor];
 
-                if (char.IsWhiteSpace(c))
+                if (char.IsWhiteSpace(c) && depth == 0)
                 {
                     cursor++;
                     break;
                 }
 
-                if (c == '=')
+                if (c == '=' && depth == 0)
                 {
                     cursor++;
                     break;
@@ -512,13 +521,13 @@ public class ShaderToyToUnity
             {
                 var c = input[cursor];
 
-                if (char.IsWhiteSpace(c))
+                if (char.IsWhiteSpace(c) && depth == 0)
                 {
                     cursor--;
                     break;
                 }
 
-                if (c == '=')
+                if (c == '=' && depth == 0)
                 {
                     cursor--;
                     break;
