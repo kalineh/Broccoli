@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Text.RegularExpressions;
 
 // https://alastaira.wordpress.com/2015/08/07/unity-shadertoys-a-k-a-converting-glsl-shaders-to-cghlsl/
 // https://msdn.microsoft.com/en-GB/library/windows/apps/dn166865.aspx?tduid=(f3be73a73f6eec7cca134536a3b118ef)(256380)(2459594)(TnL5HPStwNw-TFxCy.hsr4jusqWyvt.OkA)()
@@ -212,10 +213,18 @@ public class ShaderToyToUnity
         // mainImage(out vec4 fragColor, in vec2 fragCoord) is the fragment shader function, equivalent to float4 mainImage(float2 fragCoord : SV_POSITION) : SV_Target
         // UV coordinates in GLSL have 0 at the top and increase downwards, in HLSL 0 is at the bottom and increases upwards, so you may need to use uv.y = 1 – uv.y at some point.
 
+        code = StripComments(code);
+
         code = ReplaceMulAssigns(code);
         code = ReplaceMuls(code);
 
         return template.Replace("$CODE", code);
+    }
+
+    private static string StripComments(string input)
+    {
+        var re = @"(@(?:""[^""]*"")+|""(?:[^""\n\\]+|\\.)*""|'(?:[^'\n\\]+|\\.)*')|//.*|/\*(?s:.*?)\*/";
+        return Regex.Replace(input, re, "$1");
     }
 
     private static string ReplaceMulAssigns(string input)
