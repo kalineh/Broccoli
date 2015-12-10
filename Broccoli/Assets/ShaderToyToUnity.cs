@@ -212,46 +212,21 @@ public class ShaderToyToUnity
         // mainImage(out vec4 fragColor, in vec2 fragCoord) is the fragment shader function, equivalent to float4 mainImage(float2 fragCoord : SV_POSITION) : SV_Target
         // UV coordinates in GLSL have 0 at the top and increase downwards, in HLSL 0 is at the bottom and increases upwards, so you may need to use uv.y = 1 – uv.y at some point.
 
+        code = ReplaceMulAssigns(code);
         code = ReplaceMuls(code);
 
         return template.Replace("$CODE", code);
     }
 
-    private static string ReplaceMuls(string input)
+    private static string ReplaceMulAssigns(string input)
     {
-        /*
-        // test code (passes)
-        void mainImage(out vec4 fragColor, in vec2 fragCoord)
-        {
-            vec3 test0 = vec3(1, 1, 1);
-            vec3 test1 = vec3(1, 1, 1);
-            vec3 test2 = test0 * test1;
-            vec3 test3 = test0 * test1;
-            vec3 test4 = (test0) * test1;
-            vec3 test5 = ((test0)) * test1;
-            vec3 test6 = ((test0)) * test1;
-
-            vec3 test7 = test0 * (test1);
-            vec3 test8 = test0 * ((test1));
-
-            vec3 test9 = test0 * (test1);
-            vec3 test10 = test0 * (test1);
-
-            vec3 test11 = (test0 * test1);
-            vec3 test12 = (test0) * (test1);
-            vec3 test13 = ((test0) * (test1));
-
-            fragColor = vec4(1, 1, 0, 1);
-        }
-        */
-
         // walk backwards to find identifier a
         // walk forwards to find identifier b
         // insert identifiers into mul()
 
         while (true)
         {
-            var mul = input.IndexOf('*');
+            var mul = input.IndexOf("*=");
             if (mul == -1)
                 break;
 
@@ -322,7 +297,7 @@ public class ShaderToyToUnity
             block_a_begin = cursor;
 
             // walk till non-whitespace
-            cursor = mul + 1;
+            cursor = mul + 2;
             while (cursor < input.Length)
             {
                 var c = input[cursor];
@@ -350,6 +325,206 @@ public class ShaderToyToUnity
                 }
 
                 if (c == ',')
+                {
+                    cursor--;
+                    break;
+                }
+
+                if (c == ';')
+                {
+                    cursor--;
+                    break;
+                }
+
+                if (c == ')')
+                {
+                    if (depth == 0)
+                    {
+                        cursor--;
+                        break;
+                    }
+                    else
+                        depth--;
+                }
+
+                if (c == '(')
+                    depth++;
+
+                cursor++;
+            }
+            block_b_end = cursor + 1;
+
+            var block_a = input.Substring(block_a_begin, block_a_end - block_a_begin);
+            var block_b = input.Substring(block_b_begin, block_b_end - block_b_begin);
+            var insert = string.Format("mul({0},{1})", block_a, block_b);
+
+            input = input.Remove(block_a_begin, block_b_end - block_a_begin);
+            input = input.Insert(block_a_begin, insert);
+        }
+
+        return input;
+    }
+
+    private static string ReplaceMuls(string input)
+    {
+        /*
+        // test code (passes)
+        void mainImage(out vec4 fragColor, in vec2 fragCoord)
+        {
+            vec3 test0 = vec3(1, 1, 1);
+            vec3 test1 = vec3(1, 1, 1);
+            vec3 test2 = test0 * test1;
+            vec3 test3 = test0 * test1;
+            vec3 test4 = (test0) * test1;
+            vec3 test5 = ((test0)) * test1;
+            vec3 test6 = ((test0)) * test1;
+
+            vec3 test7 = test0 * (test1);
+            vec3 test8 = test0 * ((test1));
+
+            vec3 test9 = test0 * (test1);
+            vec3 test10 = test0 * (test1);
+
+            vec3 test11 = (test0 * test1);
+            vec3 test12 = (test0) * (test1);
+            vec3 test13 = ((test0) * (test1));
+
+            float test14 = 0.0f;
+
+            test14 *= 2.0f;
+
+            float test15 = 1 * 2 * 3;
+            float test16 = 1 * 2 * 3 * 4;
+
+            fragColor = vec4(1, 1, 0, 1);
+        }
+        */
+
+        // walk backwards to find identifier a
+        // walk forwards to find identifier b
+        // insert identifiers into mul()
+
+        while (true)
+        {
+            var mul = input.IndexOf('*');
+            if (mul == -1)
+                break;
+
+            var cursor = mul - 1;
+            var depth = 0;
+
+            var block_a_begin = -1;
+            var block_a_end = -1;
+
+            var block_b_begin = -1;
+            var block_b_end = -1;
+
+            // walk till non-whitespace
+            while (cursor >= 0)
+            {
+                var c = input[cursor];
+                if (!char.IsWhiteSpace(c))
+                    break;
+                cursor--;
+            }
+
+            // walk through chars until , or (
+            block_a_end = cursor + 1;
+            while (cursor >= 0)
+            {
+                var c = input[cursor];
+
+                if (char.IsWhiteSpace(c))
+                {
+                    cursor++;
+                    break;
+                }
+
+                if (c == '=')
+                {
+                    cursor++;
+                    break;
+                }
+
+                if (c == ',' && depth == 0)
+                {
+                    cursor++;
+                    break;
+                }
+
+                if (c == ';')
+                {
+                    cursor++;
+                    break;
+                }
+
+                if (c == '(')
+                {
+                    if (depth == 0)
+                    {
+                        // might be function call, need to walk back to identifier start
+                        while (cursor >= 0)
+                        {
+                            c = input[cursor];
+
+                            var valid_identifier = false;
+
+                            // ignore starting literal rule
+                            if (char.IsLetterOrDigit(c))
+                                valid_identifier = true;
+
+                            if (c == '.')
+                                valid_identifier = true;
+
+                            if (!valid_identifier)
+                                break;
+
+                            cursor--;
+                        }
+
+                        cursor++;
+                        break;
+                    }
+                    else
+                        depth--;
+                }
+
+                if (c == ')')
+                    depth++;
+
+                cursor--;
+            }
+            block_a_begin = cursor;
+
+            // walk till non-whitespace
+            cursor = mul + 1;
+            while (cursor < input.Length)
+            {
+                var c = input[cursor];
+                if (!char.IsWhiteSpace(c))
+                    break;
+                cursor++;
+            }
+
+            // walk through chars until , or (
+            block_b_begin = cursor;
+            while (cursor < input.Length)
+            {
+                var c = input[cursor];
+
+                if (char.IsWhiteSpace(c))
+                {
+                    cursor--;
+                    break;
+                }
+
+                if (c == '=')
+                {
+                    cursor--;
+                    break;
+                }
+
+                if (c == ',' && depth == 0)
                 {
                     cursor--;
                     break;
