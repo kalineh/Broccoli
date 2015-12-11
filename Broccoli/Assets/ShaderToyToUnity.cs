@@ -68,7 +68,11 @@ public class ShaderToyToUnity
             {
                 Properties
                 {
-                    _MainTex (""Texture"",  2D) = ""white"" {}
+                    _MainTex (""Texture"", 2D) = ""white"" {}
+                    iChannel0 (""Texture"", 2D) = ""white"" {}
+                    iChannel1 (""Texture"", 2D) = ""white"" {}
+                    iChannel2 (""Texture"", 2D) = ""white"" {}
+                    iChannel3 (""Texture"", 2D) = ""white"" {}
                 }
                 SubShader
                 {
@@ -96,7 +100,11 @@ public class ShaderToyToUnity
                             float4 vertex : SV_POSITION;
                         };
 
-                        sampler2D _MainTex;
+                        sampler2D iChannel0;
+                        sampler2D iChannel1;
+                        sampler2D iChannel2;
+                        sampler2D iChannel3;
+
                         float4 _MainTex_ST;
 
                         v2f vert(appdata v)
@@ -176,14 +184,15 @@ public class ShaderToyToUnity
 
             float2x2 mat2(float x0, float x1, float y0, float y1) { return float2x2(x0,x1,y0,y1); }
 
+            float4 texture2D_wrapper(sampler2D s, float2 uv) { return tex2D(s, uv); }
+            float4 texture2D_wrapper(sampler2D s, float2 uv, float bias) { return tex2D(s, uv); }
+
             #define mat3 float3x3
             #define mat4 float4x4
 
             #define ivec2 int2
             #define ivec3 int3
             #define ivec4 int4
-
-            #define Texture2D(a,b,c) Tex2D(a,b)
 
             #define atan(x, y) atan2(y, x)
             #define mix lerp
@@ -209,6 +218,8 @@ public class ShaderToyToUnity
         code = code.Replace("mat2 ", "float2x2 ");
         code = code.Replace("mat3 ", "float3x3 ");
         code = code.Replace("mat4 ", "float4x4 ");
+
+        code = code.Replace("texture2D", "texture2D_wrapper");
 
         // mainImage(out vec4 fragColor, in vec2 fragCoord) is the fragment shader function, equivalent to float4 mainImage(float2 fragCoord : SV_POSITION) : SV_Target
         // UV coordinates in GLSL have 0 at the top and increase downwards, in HLSL 0 is at the bottom and increases upwards, so you may need to use uv.y = 1 – uv.y at some point.
