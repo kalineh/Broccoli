@@ -187,6 +187,7 @@ public class ShaderToyToUnity
             float4 texture2D_wrapper(sampler2D s, float2 uv) { return tex2D(s, uv); }
             float4 texture2D_wrapper(sampler2D s, float2 uv, float bias) { return tex2D(s, uv); }
 
+            #define mat2 float2x2
             #define mat3 float3x3
             #define mat4 float4x4
 
