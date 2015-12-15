@@ -13,49 +13,33 @@ public class ShaderToy
     public string name;
     public string username;
     public string code;
-}
 
-public class ShaderToyMaterial
-{
-    public string id;
     public Material material;
-    public object channel0;
-    public object channel1;
-    public object channel2;
-    public object channel3;
 }
 
 public class ShaderToyAPI
 {
-    private static ShaderToyAPI _Instance;
-    public static ShaderToyAPI Instance { get { _Instance = _Instance ?? new ShaderToyAPI(); return _Instance; } }
+    private static string UnityExePath = "";
+    private static string APIKey = "fdHtwN";
+    private static string APIURL = "https://www.shadertoy.com/api/v1/";
+    private static string APIShaders = "shaders";
+    private static string APIShader = "shaders";
+    private static string ResourceURL = "https://www.shadertoy.com/";
 
-    public string UnityExePathHint = "";
-    private string UnityExePath = "";
-
-    private string APIKey = "fdHtwN";
-    private string APIURL = "https://www.shadertoy.com/api/v1/";
-    private string APIShaders = "shaders";
-    private string APIShader = "shaders";
-    private string ResourceURL = "https://www.shadertoy.com/";
-
-    public void Start()
-    {
-        UnityExePath = FindUnityExe();
-    }
-
-    public void Update()
+    private static string GetUnityExePath()
     {
         if (String.IsNullOrEmpty(UnityExePath))
         {
             UnityExePath = FindUnityExe();
         }
+
+        return UnityExePath;
     }
 
-    string FindUnityExe()
+    private static string FindUnityExe()
     {
-        if (File.Exists(UnityExePathHint))
-            return UnityExePathHint;
+        //if (File.Exists(UnityExePathHint))
+            //return UnityExePathHint;
 
         var guess1 = Path.Combine(Environment.GetEnvironmentVariable("PROGRAMFILES"), @"Unity\Editor\Unity.exe");
         if (File.Exists(guess1))
@@ -91,17 +75,17 @@ public class ShaderToyAPI
         return "Unity.exe";
     }
 
-    string BuildRequestURL(string req)
+    private static string BuildRequestURL(string req)
     {
         return string.Format("{0}{1}?key={2}", APIURL, req, APIKey);
     }
 
-    string BuildRequestParamURL(string req, string param)
+    private static string BuildRequestParamURL(string req, string param)
     {
         return string.Format("{0}{1}/{2}?key={3}", APIURL, req, param, APIKey);
     }
 
-    public List<string> DownloadShaderKeys()
+    public static List<string> DownloadShaderKeys()
     {
         Debug.Log("ShaderToyAPI.DownloadShaderKeys(): starting...");
 
@@ -140,7 +124,7 @@ public class ShaderToyAPI
         return result;
     }
 
-    public ShaderToy DownloadShaderToy(string key)
+    public static ShaderToy DownloadShaderToy(string key)
     {
         Debug.Log("ShaderToyAPI.DownloadShaderToy(): starting...");
 
@@ -178,7 +162,7 @@ public class ShaderToyAPI
         return shader;
     }
 
-    public Material GenerateMaterial(ShaderToy shadertoy)
+    public static Material GenerateMaterial(ShaderToy shadertoy)
     {
         Debug.Log("ShaderToyAPI.GenerateMaterial(): starting...");
 

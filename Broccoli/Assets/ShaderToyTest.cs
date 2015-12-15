@@ -75,12 +75,12 @@ public class ShaderToyTest
 
     public void TestShaderSphere(string key)
     {
-        var stm = ShaderToyCache.Instance.FindShaderToyMaterial(key);
         var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
-        sphere.GetComponent<Renderer>().material = stm.material;
+        var rb = sphere.AddComponent<Rigidbody>();
+        var stc = sphere.AddComponent<ShaderToyController>();
 
-        sphere.AddComponent<Rigidbody>();
+        stc.key = key;
 
         Destroy(sphere, 60.0f);
     }

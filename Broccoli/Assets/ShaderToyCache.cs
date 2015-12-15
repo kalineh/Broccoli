@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,19 +9,77 @@ using SimpleJSON;
 
 public class ShaderToyCache
 {
-    private static ShaderToyCache _Instance;
-    public static ShaderToyCache Instance { get { _Instance = _Instance ?? new ShaderToyCache(); return _Instance; } }
+    public static List<string> Keys = new List<string>();
+    public static List<ShaderToy> ShaderToys = new List<ShaderToy>();
 
-    public List<string> Keys = new List<string>();
-    public List<ShaderToy> ShaderToys = new List<ShaderToy>();
-    public List<ShaderToyMaterial> Materials = new List<ShaderToyMaterial>();
+    private static Mutex mutex;
+    private static Thread loader;
+    private static List<string> requests = new List<string>();
+    private static List<string> processing = new List<string>();
 
-    public void Update()
+    static ShaderToyCache()
     {
-        
+        loader = new Thread(LoaderThread);
+        mutex = new Mutex();
+
+        loader.Start();
     }
 
-    public bool HasKey(string key)
+    public static void Request(string key)
+    {
+        if (!mutex.WaitOne(100))
+            return;
+
+        if (!requests.Contains(key) && !processing.Contains(key))
+            requests.Add(key);
+
+        mutex.ReleaseMutex();
+    }
+
+    private static void LoaderThread()
+    {
+        while (true)
+        {
+            Thread.Sleep(100);
+
+            if (!mutex.WaitOne(100))
+                continue;
+
+            processing.AddRange(requests);
+            requests.Clear();
+
+            mutex.ReleaseMutex();
+
+            foreach (var key in processing)
+            {
+                Debug.LogFormat("ShaderToyCache: generating {0}", key);
+
+                var shadertoy = ShaderToyAPI.DownloadShaderToy(key);
+                var material = ShaderToyAPI.GenerateMaterial(shadertoy);
+
+                var existing_shadertoy = GetShaderToy(key);
+
+                foreach (var s in ShaderToys)
+                {
+                    if (s.id == key)
+                    {
+                        ShaderToys.Remove(s);
+                        break;
+                    }
+                }
+
+                ShaderToys.Add(shadertoy);
+            }
+
+            if (mutex.WaitOne(100))
+            {
+                processing.Clear();
+                mutex.ReleaseMutex();
+            }
+        }
+    }
+
+    public static bool HasKey(string key)
     {
         foreach (var s in Keys)
         {
@@ -31,7 +90,25 @@ public class ShaderToyCache
         return false;
     }
 
-    public ShaderToy FindShaderToy(string key)
+    public static void LoadShaderToy(string key)
+    {
+        var shadertoy = ShaderToyAPI.DownloadShaderToy(key);
+
+        ShaderToys.Add(shadertoy);
+    }
+
+    public static bool HasShaderToy(string key)
+    {
+        foreach (var s in ShaderToys)
+        {
+            if (s.id == key)
+                return true;
+        }
+
+        return false;
+    }
+
+    public static ShaderToy GetShaderToy(string key)
     {
         foreach (var s in ShaderToys)
         {
@@ -42,34 +119,20 @@ public class ShaderToyCache
         return null;
     }
 
-    public ShaderToyMaterial FindShaderToyMaterial(string key)
+    public static Material GetMaterial(string key)
     {
-        foreach (var m in Materials)
+        foreach (var s in ShaderToys)
         {
-            if (m.id == key)
-                return m;
+            if (s.id == key)
+                return s.material;
         }
 
-        var path = String.Format("Assets/{0}.mat", key);
-        var material = new Material(Shader.Find("Diffuse"));
+        return null;
 
-        AssetDatabase.CreateAsset(material, path);
-
-        var asset = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-        var stm = new ShaderToyMaterial();
-
-        stm.id = key;
-        stm.material = material;
-        //stm.channel0 = material.GetTexture("iChannel0");
-        //stm.channel1 = material.GetTexture("iChannel1");
-        //stm.channel2 = material.GetTexture("iChannel2");
-        //stm.channel3 = material.GetTexture("iChannel3");
-
-        return stm;
+        //var path = String.Format("Assets/{0}.mat", key);
+        //var material = new Material(Shader.Find("Diffuse"));
+        //AssetDatabase.CreateAsset(material, path);
+        //var asset = AssetDatabase.LoadAssetAtPath<Material>(path);
+        //return material;
     }
-
-    // find key
-    // find material
-    // find shadertoy
 }
