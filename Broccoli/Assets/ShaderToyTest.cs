@@ -6,15 +6,6 @@ using UnityEngine;
 using UnityEditor;
 using SimpleJSON;
 
-public class ShaderToy
-{
-    public string id;
-    public string name;
-    public string username;
-    public string code;
-}
-
-
 /*
 {
 "Shader": {
@@ -74,296 +65,27 @@ public class ShaderToy
 public class ShaderToyTest
     : MonoBehaviour
 {
-    public string UnityExePathHint = "";
-    private string UnityExePath = "";
-
-    private string APIKey = "fdHtwN";
-    private string APIURL = "https://www.shadertoy.com/api/v1/";
-    private string APIShaders = "shaders";
-    private string APIShader = "shaders";
-    private string ResourceURL = "https://www.shadertoy.com/";
-
-    public List<string> ShaderKeys = new List<string>();
-    public List<ShaderToy> ShaderToyCache = new List<ShaderToy>();
-
     void Update()
     {
-        if (String.IsNullOrEmpty(UnityExePath))
-        {
-            UnityExePath = FindUnityExe();
-        }
+        if (Input.GetKeyDown(KeyCode.A)) { TestShaderSphere("ldtGDr"); }
 
-        if (Input.GetKeyDown(KeyCode.A)) { StartCoroutine(DownloadShaderKeys()); }
-        if (Input.GetKeyDown(KeyCode.S)) { StartCoroutine(DownloadShaderInfo(ShaderKeys[0])); }
-        if (Input.GetKeyDown(KeyCode.D)) { StartCoroutine(DownloadShaderInfo("ldtGDr")); }
-        if (Input.GetKeyDown(KeyCode.F)) { StartCoroutine(TestMaterial("ldtGDr")); }
-        if (Input.GetKeyDown(KeyCode.G)) { StartCoroutine(TestBatch("ldtGDr")); }
-        if (Input.GetKeyDown(KeyCode.H)) { StartCoroutine(Reload()); }
-        if (Input.GetKeyDown(KeyCode.J)) { StartCoroutine(TestShaderConvert()); }
-        if (Input.GetKeyDown(KeyCode.K)) { StartCoroutine(TestShaderConvertRepeat()); }
+        if (Input.GetKeyDown(KeyCode.S)) { TestShaderConvert(); }
+        if (Input.GetKeyDown(KeyCode.D)) { StartCoroutine(TestShaderConvertRepeat());  }
     }
 
-    string FindUnityExe()
+    public void TestShaderSphere(string key)
     {
-        if (File.Exists(UnityExePathHint))
-            return UnityExePathHint;
+        var stm = ShaderToyCache.Instance.FindShaderToyMaterial(key);
+        var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
-        var guess1 = Path.Combine(Environment.GetEnvironmentVariable("PROGRAMFILES"), @"Unity\Editor\Unity.exe");
-        if (File.Exists(guess1))
-            return guess1;
+        sphere.GetComponent<Renderer>().material = stm.material;
 
-        var guess2 = Microsoft.Win32.Registry.GetValue(@"HKEY_CLASSES_ROOT\com.unity3d.kharma\DefaultIcon", "", null) as string;
-        if (File.Exists(guess2))
-            return guess2;
+        sphere.AddComponent<Rigidbody>();
 
-        // NOTE：not implemented in mono
-        /*
-        //var drives = DriveInfo.GetDrives();
-
-        foreach (var drive in drives)
-        {
-            if (drive.DriveType != DriveType.Fixed)
-                continue;
-
-            var root = drive.RootDirectory.FullName;
-            var files = Directory.GetFiles(root, "Unity.exe", SearchOption.AllDirectories);
-
-            if (files.Length > 0)
-                return files[0];
-        }
-        */
-
-        var root = "C:";
-        var files = Directory.GetFiles(root, "Unity.exe", SearchOption.AllDirectories);
-
-        if (files.Length > 0)
-            return files[0];
-
-        return "Unity.exe";
+        Destroy(sphere, 60.0f);
     }
 
-    string BuildRequestURL(string req)
-    {
-        return string.Format("{0}{1}?key={2}", APIURL, req, APIKey);
-    }
-
-    string BuildRequestParamURL(string req, string param)
-    {
-        return string.Format("{0}{1}/{2}?key={3}", APIURL, req, param, APIKey);
-    }
-
-    IEnumerator DownloadShaderKeys()
-    {
-        Debug.Log("ShaderToyTest.DownloadShaderKeys(): starting...");
-
-        var url = BuildRequestURL(APIShaders);
-        var www = new WWW(url);
-
-        Debug.LogFormat("> requesting: {0}", url);
-
-        while (!www.isDone)
-            yield return null;
-
-        var results = www.text;
-        var json = JSON.Parse(results);
-
-        // "Shaders": count
-        // "Results": [ keys, ]
-
-        var count = json["Shaders"].AsInt;
-        var keys = json["Results"].AsArray;
-
-        ShaderKeys.Clear();
-
-        foreach (var node in keys)
-        {
-            var str = node.ToString();
-
-            str = str.Trim('\"');
-
-            ShaderKeys.Add(str);
-        }
-
-        Debug.Log("ShaderToyTest.DownloadShaderKeys(): done.");
-    }
-
-    IEnumerator DownloadShaderInfo(string key)
-    {
-        Debug.Log("ShaderToyTest.DownloadShaderInfo(): starting...");
-
-        var url = BuildRequestParamURL(APIShader, key);
-        var www = new WWW(url);
-
-        Debug.LogFormat("> requesting: {0}", url);
-
-        while (!www.isDone)
-            yield return null;
-
-        var results = www.text;
-        var json = JSON.Parse(results);
-
-        var result = json.ToString();
-
-        var shader = new ShaderToy();
-
-        var json_info = json["Shader"]["info"];
-        var json_renderpass = json["Shader"]["renderpass"];
-
-        shader.id = json_info["id"];
-        shader.name = json_info["name"];
-        shader.username = json_info["username"];
-
-        shader.code = json_renderpass[0]["code"];
-
-        Debug.Log(result);
-        Debug.Log(shader.code);
-
-        foreach (var item in ShaderToyCache)
-        {
-            if (item.id == shader.id)
-            {
-                ShaderToyCache.Remove(item);
-                break;
-            }
-        }
-
-        ShaderToyCache.Add(shader);
-
-        Debug.Log("ShaderToyTest.DownloadShaderKeys(): done.");
-    }
-
-    IEnumerator TestMaterial(string key)
-    {
-        Debug.Log("ShaderToyTest.TestMaterial(): starting...");
-
-        foreach (var s in ShaderToyCache)
-        {
-            if (s.id == key)
-            {
-                Debug.Log("> found " + key);
-
-                var converted = ShaderToyToUnity.Convert(key, s.code);
-
-                Debug.Log(converted);
-
-                var material = new Material(converted);
-                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-                cube.name = key;
-                cube.GetComponent<Renderer>().material = material;
-            }
-        }
-
-        Debug.Log("ShaderToyTest.TestMaterial(): done");
-        yield return null;
-    }
-
-    IEnumerator TestBatch(string key)
-    {
-        Debug.Log("ShaderToyTest.TestBatch(): starting...");
-
-        foreach (var s in ShaderToyCache)
-        {
-            if (s.id == key)
-            {
-                Debug.Log("> found " + key);
-
-                var converted = ShaderToyToUnity.Convert(key, s.code);
-
-                Debug.Log(converted);
-
-                var temp = Environment.GetEnvironmentVariable("TEMP");
-                var file = String.Format("{0}.shader", key);
-                var shader_dir = Path.Combine(temp, "ShaderToyGenerated");
-                var shader_path = Path.Combine(shader_dir, file);
-
-                Debug.LogFormat("> writing: {0}", shader_path);
-
-                Directory.CreateDirectory(shader_dir);
-                File.WriteAllText(shader_path, converted);
-
-                var bundle_path = Path.ChangeExtension(shader_path, "assetbundle");
-
-                var process_filename = Path.GetFullPath(@"Assets\buildtools\build_shader.bat");
-                var process_exists = File.Exists(process_filename);
-
-                var args = String.Format("\"{0}\" \"{1}\" \"{2}\"", UnityExePath, shader_dir, bundle_path);
-                var info = new System.Diagnostics.ProcessStartInfo(process_filename, args);
-
-                info.WorkingDirectory = @"Assets\buildtools";
-                info.UseShellExecute = false;
-                info.CreateNoWindow = true;
-                info.RedirectStandardOutput = true;
-
-                var proc = new System.Diagnostics.Process() { StartInfo = info, };
-
-                Debug.LogFormat("> starting batch: {0} {1}", info.FileName, info.Arguments);
-
-                proc.Start();
-
-                var stdout = proc.StandardOutput.ReadToEnd();
-                while (!proc.HasExited)
-                {
-                    Debug.Log("waiting...");
-                    yield return null;
-                }
-
-                Debug.Log(stdout);
-
-                proc.WaitForExit();
-
-                var bundle_exists = File.Exists(bundle_path);
-
-                Debug.LogFormat("> bundle exists: {0}", bundle_exists);
-
-                if (!bundle_exists)
-                    yield break;
-
-                var bundle = AssetBundle.CreateFromFile(bundle_path);
-                var bundle_assets = bundle.GetAllAssetNames();
-
-                Debug.LogFormat("> bundle:");
-                foreach (var name in bundle_assets)
-                {
-                    Debug.LogFormat("> * {0}", name);
-                }
-
-                var bundle_shader_name = String.Format("assets/{0}.shader", key);
-                var bundle_shader = bundle.LoadAsset<Shader>(bundle_shader_name);
-
-                Debug.LogFormat("> shader: {0}", bundle_shader.ToString());
-
-                if (!bundle_shader)
-                {
-                    bundle.Unload(false);
-                    yield break;
-                }
-
-                var material = new Material(bundle_shader);
-                var sphere = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-                sphere.name = key;
-                sphere.GetComponent<Renderer>().material = material;
-
-                sphere.AddComponent<Rigidbody>();
-                sphere.AddComponent<ShaderText>().Text = converted;
-
-                DestroyObject(sphere, 60.0f);
-
-                bundle.Unload(false);
-            }
-        }
-
-        Debug.Log("ShaderToyTest.TestBatch(): done");
-        yield return null;
-    }
-
-    public IEnumerator Reload()
-    {
-        yield return StartCoroutine(DownloadShaderInfo("ldtGDr"));
-        yield return StartCoroutine(TestBatch("ldtGDr"));
-    }
-
+    // debug
     public IEnumerator TestShaderConvert()
     {
         Debug.Log("TestShaderConvert(): enter");
@@ -377,6 +99,7 @@ public class ShaderToyTest
         yield return null;
     }
 
+    // debug
     public IEnumerator TestShaderConvertRepeat()
     {
         Debug.Log("TestShaderConvertRepeat(): enter");
@@ -412,7 +135,5 @@ public class ShaderToyTest
                 yield return null;
             }
         }
-
-        yield return null;
     }
 }
