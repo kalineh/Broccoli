@@ -6,23 +6,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using SimpleJSON;
+using CielaSpike;
+
+public class ShaderToyCacheProxy
+    : MonoBehaviour
+{
+};
 
 public class ShaderToyCache
 {
+    private static GameObject proxy;
+
     public static List<string> Keys = new List<string>();
     public static List<ShaderToy> ShaderToys = new List<ShaderToy>();
 
     private static Mutex mutex;
-    private static Thread loader;
     private static List<string> requests = new List<string>();
     private static List<string> processing = new List<string>();
 
     static ShaderToyCache()
     {
-        loader = new Thread(LoaderThread);
+        proxy = new GameObject("ShaderToyCacheProxy");
         mutex = new Mutex();
 
-        loader.Start();
+        proxy.AddComponent<ShaderToyCacheProxy>();
+        proxy.GetComponent<ShaderToyCacheProxy>().StartCoroutineAsync(LoaderTask());
     }
 
     public static void Request(string key)
@@ -36,8 +44,10 @@ public class ShaderToyCache
         mutex.ReleaseMutex();
     }
 
-    private static void LoaderThread()
+    private static IEnumerator LoaderTask()
     {
+        yield return Ninja.JumpBack;
+
         while (true)
         {
             Thread.Sleep(100);
