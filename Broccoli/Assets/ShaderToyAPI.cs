@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
@@ -85,21 +86,48 @@ public class ShaderToyAPI
         return string.Format("{0}{1}/{2}?key={3}", APIURL, req, param, APIKey);
     }
 
+    private static string LoadWebData(string url)
+    {
+        WebClient client = new WebClient();
+
+        // Add a user agent header in case the 
+        // requested URI contains a query.
+
+        client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
+        var data = client.OpenRead(url);
+        var reader = new StreamReader(data);
+        var result = reader.ReadToEnd();
+
+        data.Close();
+        reader.Close();
+
+        return result;
+    }
+
+    private static Texture2D LoadWebTexture(string url, int width, int height, TextureFormat format)
+    {
+        var data = LoadWebData(url);
+        var texture = new Texture2D(width, height, format, false);
+
+        var bytes = new byte[data.Length];
+
+        System.Buffer.BlockCopy(data.ToCharArray(), 0, bytes, 0, data.Length);
+
+        texture.LoadImage(bytes);
+
+        return texture;
+    }
+
     public static List<string> DownloadShaderKeys()
     {
         Debug.Log("ShaderToyAPI.DownloadShaderKeys(): starting...");
 
         var url = BuildRequestURL(APIShaders);
-        var www = new WWW(url);
 
         Debug.LogFormat("> requesting: {0}", url);
 
-        while (!www.isDone)
-        {
-            Thread.Sleep(0);
-        }
-
-        var results = www.text;
+        var results = LoadWebData(url);
         var json = JSON.Parse(results);
 
         // "Shaders": count
@@ -129,16 +157,10 @@ public class ShaderToyAPI
         Debug.Log("ShaderToyAPI.DownloadShaderToy(): starting...");
 
         var url = BuildRequestParamURL(APIShader, key);
-        var www = new WWW(url);
 
         Debug.LogFormat("> requesting: {0}", url);
 
-        while (!www.isDone)
-        {
-            Thread.Sleep(0);
-        }
-
-        var results = www.text;
+        var results = LoadWebData(url);
         var json = JSON.Parse(results);
 
         var result = json.ToString();
